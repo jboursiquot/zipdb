@@ -9,9 +9,8 @@ import (
 )
 
 type config struct {
-	Host   string `env:"HOST,default=127.0.0.1"`
-	Port   string `env:"PORT,default=8080"`
-	DBFile string `env:"DB_FILE,default=data/US.db"`
+	DataFile string `env:"DATA_FILE,default=data/US.txt"`
+	DBFile   string `env:"DB_FILE,default=data/US.db"`
 }
 
 var (

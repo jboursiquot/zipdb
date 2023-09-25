@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -12,26 +13,31 @@ import (
 )
 
 type handler struct {
-	locations map[string]zipdb.Location
+	db *zipdb.DB
 }
 
 func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	zip := chi.URLParam(r, "zip")
-	if loc, found := h.locations[zip]; found {
-		render.JSON(w, r, loc)
+	loc, err := h.db.Find(zip)
+	if err != nil {
+		if strings.Contains(err.Error(), "record not found") {
+			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+			return
+		}
+		http.Error(w, http.StatusText(500), 500)
 		return
 	}
-	http.Error(w, http.StatusText(404), 404)
+	render.JSON(w, r, loc)
 }
 
 func main() {
-	locations, err := zipdb.LoadLocations(cfg.DataFile)
+	db, err := zipdb.NewDB(cfg.DBFile)
 	if err != nil {
 		log.Error(err.Error())
 		os.Exit(1)
 	}
 
-	h := &handler{locations: locations}
+	h := &handler{db: db}
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
