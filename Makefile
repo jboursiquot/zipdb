@@ -14,14 +14,15 @@ traffic:
 seed:
 	go run cmd/seed/*.go
 
+ZIP ?= 90210
+
 create:
-	@curl -i -d @data/12345.json \
+	@curl -i -d @data/$(ZIP).json \
 		-H "Content-Type: application/json" \
 		-X POST http://localhost:8080/
 
-ZIP ?= 90210
 read:
-	@curl -s http://localhost:8080/$(ZIP)
+	@curl -s -i http://localhost:8080/$(ZIP)
 
 update:
 	@curl -i -d @data/90210.json \
