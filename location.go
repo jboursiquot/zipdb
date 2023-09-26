@@ -1,6 +1,7 @@
 package zipdb
 
 import (
+	"fmt"
 	"log/slog"
 
 	"gorm.io/gorm"
@@ -21,6 +22,6 @@ type Location struct {
 
 func (l *Location) BeforeCreate(tx *gorm.DB) (err error) {
 	l.ID = l.Zip
-	slog.Info("Adding", "zip", l.Zip)
+	slog.Info("Adding", "Location", fmt.Sprintf("%s - %s, %s", l.Zip, l.City, l.State))
 	return
 }

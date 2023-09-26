@@ -4,31 +4,11 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/go-chi/render"
 	"github.com/jboursiquot/zipdb"
 )
-
-type handler struct {
-	db *zipdb.DB
-}
-
-func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	zip := chi.URLParam(r, "zip")
-	loc, err := h.db.Find(zip)
-	if err != nil {
-		if strings.Contains(err.Error(), "record not found") {
-			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
-			return
-		}
-		http.Error(w, http.StatusText(500), 500)
-		return
-	}
-	render.JSON(w, r, loc)
-}
 
 func main() {
 	db, err := zipdb.NewDB(cfg.DBFile)
@@ -37,11 +17,18 @@ func main() {
 		os.Exit(1)
 	}
 
-	h := &handler{db: db}
+	h := zipdb.NewHandler(db)
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
-	r.Get("/{zip:[0-9]+}", h.ServeHTTP)
+	r.Route("/", func(r chi.Router) {
+		r.Route("/{zip:[0-9]+}", func(r chi.Router) {
+			r.Get("/", h.Read)      // GET /12345
+			r.Put("/", h.Update)    // PUT /12345
+			r.Delete("/", h.Delete) // DELETE /12345
+		})
+	})
+	r.Post("/", http.HandlerFunc(h.Create))
 
 	hostPort := fmt.Sprintf("%s:%s", cfg.Host, cfg.Port)
 

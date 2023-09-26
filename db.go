@@ -22,10 +22,8 @@ func NewDB(path string) (*DB, error) {
 }
 
 func (db *DB) Seed(locations map[string]Location) error {
-	for _, l := range locations {
-		if err := db.conn.Clauses(clause.OnConflict{UpdateAll: true}).Create(&l).Error; err != nil {
-			return err
-		}
+	for _, loc := range locations {
+		return db.Upsert(&loc)
 	}
 	return nil
 }
@@ -36,4 +34,18 @@ func (db *DB) Find(zip string) (*Location, error) {
 		return nil, err
 	}
 	return &loc, nil
+}
+
+func (db *DB) Upsert(loc *Location) error {
+	if err := db.conn.Clauses(clause.OnConflict{UpdateAll: true}).Create(loc).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (db *DB) Delete(loc *Location) error {
+	if err := db.conn.Delete(&loc).Error; err != nil {
+		return err
+	}
+	return nil
 }

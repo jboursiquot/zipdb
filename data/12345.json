@@ -1,0 +1,10 @@
+{
+  "Country": "US",
+  "Zip": "12345",
+  "City": "Fake City",
+  "StateLong": "Fake State",
+  "State": "FS",
+  "County": "Fake County",
+  "Lat": 34.0901,
+  "Long": -118.4065
+}
